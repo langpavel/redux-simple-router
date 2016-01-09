@@ -61,17 +61,15 @@ export function syncHistory(history) {
     connected = true
 
     return next => action => {
-      if (action.type !== TRANSITION || !connected) {
-        return next(action)
+      if (!syncing && connected && action.type === TRANSITION) {
+        const { method, arg } = action
+        history[method](arg)
+        // FIXME: Is it correct to swallow the TRANSITION action here and replace
+        // it with UPDATE_LOCATION instead? We could also use the same type in
+        // both places instead and just set the location on the action.
+        return
       }
-
-      const { method, arg } = action
-      history[method](arg)
-
-      // FIXME: Is it correct to swallow the TRANSITION action here and replace
-      // it with UPDATE_LOCATION instead? We could also use the same type in
-      // both places instead and just set the location on the action.
-      //return next(updateLocation(location));
+      return next(action);
     }
   }
 
